@@ -2,11 +2,20 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {signIn, useSession} from 'next-auth/react';
+import {useRouter} from "next/navigation";
 
 export default function Login() {
-
+    const router = useRouter();
     const [error, setError] = useState("");
+    const { data: session, status: sessionStatus} = useSession();
+
+    useEffect(() => {
+      if(sessionStatus === "authenticated") {
+        router.replace("/dashboard")
+      }
+    }, [sessionStatus, router]);
 
     const isValidEmail = (email: string) => {
       const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -26,13 +35,29 @@ export default function Login() {
       if (!password || password.length < 8){
         setError("Contraseña invalida");
         return;
-    }
+      }
       
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
 
+      if(!res?.error){
+        setError("Email o contraseña invalidos");
+        if(res?.url) router.replace("/dashboard");
+      } else {
+        setError("");
+      }
+
+    };
+
+    if (sessionStatus === "loading"){
+      return <h1>Loading...</h1>;
     }
 
     return(
-        <>
+        sessionStatus !== "authenticated" && (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
 
         <div className="relative flex flex-col m-6 space-y-8 bg-white shadow-2xl rounded-2xl md:flex-row md:space-y-0">
@@ -85,6 +110,6 @@ export default function Login() {
           </div>
         </div>
       </div>
-        </>
+      )
     );
 }

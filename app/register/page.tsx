@@ -1,16 +1,24 @@
 "use client"
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'
 import { NextResponse } from 'next/server';
+import { useSession } from 'next-auth/react';
 
 
 export default function Register() {
 
     const [error, setError] = useState("");
     const router = useRouter();
+    const { data: session, status: sessionStatus} = useSession();
+
+    useEffect(() => {
+        if(sessionStatus === "authenticated") {
+          router.replace("/dashboard")
+        }
+      }, [sessionStatus, router]);
 
     const isValidEmail = (email: string) => {
         const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -67,8 +75,12 @@ export default function Register() {
         }
     };
 
+    if (sessionStatus === "loading"){
+        return <h1>Loading...</h1>;
+      }
+
     return(
-      <>
+        sessionStatus !== "authenticated" && (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="absolute top-4 left-4">
                 <Link href="/login">
@@ -132,6 +144,6 @@ export default function Register() {
                 </div>
             </div>
         </div>
-     </>
+        )
     );
 }

@@ -23,4 +23,4 @@ const clientSchema = new Schema(
  
 const Client = mongoose.models.Client || mongoose.model("Client", clientSchema);
 
-module.exports = Client;
+export default Client;
